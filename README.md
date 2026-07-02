@@ -6,7 +6,7 @@ Branch de trabalho : lab03_verilog_combinational
 
 ## Q01
 
-**Resposta:** A principal diferença está no objetivo. Em linguagens de programação como C, C++ e C#, a ideia é descrever um algoritmo, ou seja, uma sequência bem definida e finita de passos que será interpretada pela arquitetura visando atingir um resultado requerido pelo programador. Já em linguagens de descrição de hardware, tais como Verilog, SystemVerilog ou VHDL, o objetivo é descrever o comportamento de blocos de circuitos digitais ou analógicos de forma que tudo ocorra de maneira concorrente. Essa foi uma maneira de abstrair a complexidade dos grandes sistemas, facilitando a implementação.
+**Resposta:** A principal diferença está no objetivo. Em linguagens de programação como C, C++ e C#, a ideia é descrever um algoritmo, ou seja, uma sequência bem definida e finita de passos que será interpretada pela arquitetura visando atingir um resultado requerido pelo programador. Já em linguagens de descrição de hardware, tais como Verilog, SystemVerilog ou VHDL, o objetivo é descrever o comportamento de blocos de circuitos digitais de forma que tudo ocorra de maneira concorrente. Essa foi uma maneira de abstrair a complexidade dos grandes sistemas, facilitando a implementação.
 
 Por isso, profissionais dessa área devem entender esses conceitos, pois isso afeta a forma como o código deve ser pensado. Por exemplo, como em linguagens de programação está sendo descrito um algoritmo, a sequência das instruções importa, então o programador deve ficar atento a isso. Já em HDL, os profissionais não precisam se preocupar tanto com isso devido à concorrência, exceto em alguns casos.
 
@@ -54,6 +54,7 @@ Já no *carry-lookahead adder* (CLA), os sinais de *generate* (G) e *propagate* 
 Em um testbench combinacional finito (sem processo contínuo de clock), a simulação termina naturalmente quando não há mais eventos agendados, então a omissão de `$finish` teria pouco ou nenhum impacto — a simulação chegaria ao fim de qualquer forma.
 
 Já em um testbench com geração contínua de clock (ex.: `always #5 clk = ~clk;`), sempre haverá um próximo evento agendado, então sem `$finish` a simulação nunca terminaria sozinha, rodando indefinidamente (ou até o limite de tempo/memória do simulador).
+
 ## Q08
 
 **Resposta:**
@@ -76,7 +77,7 @@ assign c = a && b;  // ERRADO: deveria ser a & b
 
 **O que acontece:**
 
-`a && b` avalia `a` como verdadeiro (pois `a != 0`) e `b` como verdadeiro (pois `b != 0`), resultando no valor booleano `1'b1`. Esse resultado de 1 bit é então **zero-extendido** para preencher os 4 bits de `c`, produzindo:
+`a && b` avalia `a` como verdadeiro (pois `a != 0`) e `b` como verdadeiro (pois `b != 0`), resultando no valor booleano `1'b1`. Esse resultado de 1 bit é então **zero-extendido** para preencher os 4 bits de `c`.
 
 ## Q09
 
