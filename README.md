@@ -1,113 +1,82 @@
-#Respostas do Laboratorio 03
+# Respostas do Laboratório 04
+Aluno: tiago.silva
+Repositório: lab03_04_verilog_tiago_silva
+Branch de trabalho: lab04_verilog_sequential
 
-Aluno : Tiago Guilherme da Silva
-Repositorio : lab03_04_verilog_tiago_silva
-Branch de trabalho : lab03_verilog_combinational
 
 ## Q01
 
-**Resposta:** A principal diferença está no objetivo. Em linguagens de programação como C, C++ e C#, a ideia é descrever um algoritmo, ou seja, uma sequência bem definida e finita de passos que será interpretada pela arquitetura visando atingir um resultado requerido pelo programador. Já em linguagens de descrição de hardware, tais como Verilog, SystemVerilog ou VHDL, o objetivo é descrever o comportamento de blocos de circuitos digitais de forma que tudo ocorra de maneira concorrente. Essa foi uma maneira de abstrair a complexidade dos grandes sistemas, facilitando a implementação.
+**Resposta:** A diferença é que o reset síncrono só atua na borda ativa do clock, sendo tratado como parte do caminho de dados e integrando-se diretamente à análise temporal. Já o reset assíncrono atua independente do sinal de clock, ou seja, quando acionado, não é necessário esperar a próxima borda do clock para o reset ocorrer.
 
-Por isso, profissionais dessa área devem entender esses conceitos, pois isso afeta a forma como o código deve ser pensado. Por exemplo, como em linguagens de programação está sendo descrito um algoritmo, a sequência das instruções importa, então o programador deve ficar atento a isso. Já em HDL, os profissionais não precisam se preocupar tanto com isso devido à concorrência, exceto em alguns casos.
+- O reset assíncrono pode ser usado em situações onde o clock do sistema ainda não está disponível ou ainda não foi inicializado.
+
+- Ambos são suportados pelo fluxo de DFT; o que é diferente é a controlabilidade deles, o que implica que, dependendo da lógica, o uso de um ou de outro pode ser mais vantajoso. Por exemplo, na fase de deslocamento, os resets assíncronos impõem um desafio maior, porque precisam ser mantidos obrigatoriamente inativos — se forem ativados durante essa etapa, todos os valores que estavam sendo deslocados serão apagados.
+
 
 ## Q02
 
-**Resposta:** A necessidade ocorre pela escolha de implementação. O mux poderia ter sido implementado sem usar o bloco `always`, apenas com as expressões lógicas; no entanto, sua implementação se deu com o bloco `always`. Por conta disso, a sintaxe obriga o uso do `reg` no lado esquerdo para atribuições, porém essa lógica não implementa elementos de memória quando bem descrita, mas sim gera circuitos combinacionais. Ou seja, o `always @(*)` em Verilog e o `always_comb` em SystemVerilog geram circuitos combinacionais quando descritos corretamente.
+**Resposta:** Fazendo uso do `<=` (não-bloqueante), o simulador lê todos os valores antigos antes de atualizar as saídas. Assim, cada flip-flop passa o dado correto para o vizinho na mesma borda de clock, garantindo o deslocamento perfeito de bit em bit. Já se usarmos `=` (bloqueante), a atribuição ocorre imediatamente, na sequência em que as linhas do código são executadas. Isso faz com que um flip-flop já leia o valor atualizado do flip-flop anterior na mesma borda de clock, em vez do valor que ele tinha antes da borda. O resultado é que múltiplos estágios do registrador acabam recebendo o mesmo valor de uma só vez, quebrando o comportamento de deslocamento (shift) que se pretendia descrever.
+
 
 ## Q03
+**Resposta:** Fazendo o uso do modelo Moore, a saída unlock é gerada dependendo exclusivamente do estado atual da máquina de estados (FSM). Isso significa que ela só muda de valor quando ocorre uma transição de estado na borda ativa do clock. Agora, se mudarmos o comportamento para o modelo Mealy, a saída unlock passaria a ser gerada dependendo tanto do estado atual quanto das entradas atuais do sistema (neste caso, as entradas confirm e pw_ok).
 
-**Resposta:** Quando isso ocorre, um circuito cujo objetivo inicial era ser puramente combinacional pode agora apresentar elementos sequenciais, com a aparição de latches inseridos pela ferramenta da Synopsys devido à má descrição do módulo. Por isso, uma boa descrição para modelos é aquela que deixa claro o que deve ser feito, não abrindo espaço para a ferramenta supor ou presumir ligações e inclusões de elementos indesejados. Por isso, como boa regra, sempre deve-se colocar todos os casos de if/else e, caso feito o uso de `case`, sempre usar o `default` para dar robustez à descrição.
+**Vantagem:** resposta mais rápida (um ciclo de clock a menos de latência), o que em uma FSM combinada com hardware físico (como um relé de trava da porta) pode ser relevante se cada ciclo custar tempo perceptível.
+
+**Risco:** como `pw_ok` vem direto do comparador (`comparator4b`), que é puramente combinacional a partir de `stored_pw`, qualquer instabilidade ou glitch em `stored_pw`/`pw_ok` antes de estabilizar se propagaria imediatamente para `unlock`, já que ela não está mais "filtrada" por um registrador de estado. Isso pode gerar pulsos espúrios de destravamento se as entradas não estiverem bem sincronizadas — problema que o modelo Moore evita, pois `unlock` só reflete o estado já registrado (estável) na borda anterior do clock.
 
 ## Q04
+**Resposta:** Quando o circuito está no estado $S1$ (primeiro bit `1` encontrado) e recebe um segundo `1`, esse novo bit anula o anterior, mas inicia uma nova chance de completar a sequência "101". Se a máquina de estados voltasse para o estado inicial ($S0$), ela esqueceria esse segundo `1` e falharia em detectar o padrão a partir dele.
 
-**Resposta:** A diferença é compreendida no fato de que o operador `!==`, caso os elementos que estão sendo comparados estejam em algum estado indefinido, como X ou Z, permite que a ferramenta consiga identificar o erro e parar a simulação. Já quando feito o uso do `!=`, se os sinais estiverem indefinidos, ainda assim a simulação pode passar, gerando erros de lógica.
-
-**Exemplo:** Se `a = 1'bx` e `b = 1'b1`, então `a !== b` é verdadeiro (detecta a indefinição e falha o teste), enquanto `a != b` pode avaliar como `x` e não disparar erro, mascarando o problema.
+Mantendo-se em $S1$, o sistema preserva o registro de que o último bit visto foi um `1`. Assim, em um fluxo como `1` → `1` → `0` → `1`, a FSM consegue avançar corretamente para $S2$ ao receber o `0` e, finalmente, para $S3$ para ativar o sinal de detecção. Sem essa transição para si mesmo, sequências contínuas válidas seriam completamente ignoradas.
 
 ## Q05
+**Resposta:**
+**BLOCO 1: Registrador de Estado (Sequencial)**
 
-**Resposta:** No somador *ripple carry*, cada bit só pode calcular sua soma após receber o carry do bit anterior — o carry se propaga sequencialmente, do LSB ao MSB. Isso cria um caminho crítico que atravessa todos os full adders em cadeia, fazendo com que o atraso total seja a soma dos atrasos de cada estágio:
+**Responsabilidade:** Atualizar o estado atual da FSM a cada borda ativa do relógio (clock) ou restaurar o estado inicial quando o sinal de reinicialização (reset) for ativado.
 
-$$T_{ripple} \propto n \cdot t_{carry}$$
+**Características:** É um bloco puramente síncrono, descrito com `always @(posedge clk or negedge rst_n)`. Ele apenas transfere o valor calculado do próximo estado para o registrador do estado atual (`state <= next_state`).
 
-onde *n* é o número de bits e *t_carry* o atraso de geração do carry em cada full adder.
+---
 
-Já no *carry-lookahead adder* (CLA), os sinais de *generate* (G) e *propagate* (P) são calculados em paralelo, e o carry de cada estágio é obtido diretamente por equações lógicas, sem esperar a propagação sequencial. Isso reduz drasticamente o atraso, ao custo de mais hardware.
+**BLOCO 2: Lógica de Próximo Estado (Combinacional)**
 
-**Com o aumento do número de bits:** no ripple carry, o atraso cresce **linearmente** (O(n)) — dobrar a largura praticamente dobra o atraso, tornando a arquitetura inadequada para somadores largos. No carry-lookahead, o atraso cresce de forma muito mais lenta, idealmente **logarítmica** (O(log n)) em estruturas hierárquicas, ao custo de maior complexidade e área.
+**Responsabilidade:** Calcular qual será o próximo estado (`next_state`) da máquina com base no estado atual (`state`) e nas entradas do sistema.
+
+**Características:** É um bloco puramente combinacional, descrito com `always @(*)`. Ele utiliza uma estrutura condicional (como o `case`) para mapear todas as transições de estado.
+
+---
+
+**BLOCO 3: Lógica de Saída (Combinacional)**
+
+**Responsabilidade:** Definir o valor das saídas do sistema.
+
+**Características:** Também é descrito em um bloco combinacional `always @(*)`. Em uma arquitetura Moore, as saídas dependem estritamente do estado atual. No sistema de controle de acesso do laboratório, as saídas externas seguem o padrão Moore, enquanto os pulsos de controle interno (como início do temporizador e incremento de tentativas) também avaliam as entradas, configurando um comportamento do tipo Mealy.
+
+---
+
+Separar a FSM em três blocos impede misturar os operadores `=` e `<=` no mesmo bloco `always`, o que causaria sérios problemas de comportamento e possível incompatibilidade entre a simulação e o circuito sintetizado. Facilita também a definição de valores padrão (*default*)
+
+
 
 ## Q06
+**Resposta:**
 
-**Resposta:** Observando as formas de onda da figura `verdi_analysis_alu4b`, a flag vai a 1 quando temos A == B, ou seja, quando A - B == 0. Com isso, é possível executar uma operação importante de comparar dois números diferentes.
+* **Atribuição Contínua e Antecipação:** O sinal `max_attempts` é gerado via lógica combinacional contínua através da expressão `max_attempts = (attempt_count > MAX_TRIES - 1)`. Como `MAX_TRIES = 3`, a inequação simplifica-se para `attempt_count > 2`, o que indica o atingimento do limite na tentativa seguinte.
+* **Ativação Imediata:** No exato instante em que ocorre a segunda falha, o contador síncrono `attempt_count` é atualizado para `2`. Sendo uma lógica combinacional pura, `max_attempts` reage imediatamente a essa mudança e muda para `1` ainda no mesmo ciclo de clock.
+* **Avaliação da FSM e Transição:** Na terceira tentativa incorreta, a FSM se encontra avaliando as regras de transição no estado `S_CHECKING`. Como o sinal `max_attempts` já está em nível alto (`1`), a FSM avalia a condição combinacional de próximo estado `else if (max_attempts) next_state = S_BLOCKED;`.
+* **Amostragem na Borda:** Devido ao agendamento de atribuições não-bloqueantes (`<=`) no registrador de estados, a FSM agenda a transição para `S_BLOCKED` para o próximo ciclo de clock. Na mesma borda em que a FSM efetivamente assume `S_BLOCKED`, o contador também recebe o seu incremento concomitante, alcançando o valor `3`.
 
-**Casos:**
-
-| A | B |
-|---|---|
-| 1 | 1 |
-| 0 | 0 |
 
 ## Q07
+Resposta:
 
-**Resposta:** A instrução `$finish` encerra a simulação, finalizando o processo do simulador quando executada.
-
-Em um testbench combinacional finito (sem processo contínuo de clock), a simulação termina naturalmente quando não há mais eventos agendados, então a omissão de `$finish` teria pouco ou nenhum impacto — a simulação chegaria ao fim de qualquer forma.
-
-Já em um testbench com geração contínua de clock (ex.: `always #5 clk = ~clk;`), sempre haverá um próximo evento agendado, então sem `$finish` a simulação nunca terminaria sozinha, rodando indefinidamente (ou até o limite de tempo/memória do simulador).
 
 ## Q08
-
 **Resposta:**
 
-### Diferença entre `&` e `&&` em Verilog
-
-- **`&`** é o operador **bitwise AND (E lógico bit a bit)**. Ele opera bit a bit entre dois operandos de mesma largura, produzindo um resultado com a mesma largura dos operandos. Exemplo: `4'b1010 & 4'b1100 = 4'b1000`.
-
-- **`&&`** é o operador **logical AND (E lógico booleano)**. Ele trata cada operando como um valor booleano único: qualquer operando diferente de zero é considerado `1` (verdadeiro), e zero é considerado `0` (falso). O resultado é sempre **1 bit** (`0` ou `1`), independentemente da largura dos operandos.
-
-### Exemplo de erro silencioso em um barramento de 4 bits
-
-```verilog
-wire [3:0] a = 4'b1010;
-wire [3:0] b = 4'b1100;
-wire [3:0] c;
-
-assign c = a && b;  // ERRADO: deveria ser a & b
-```
-
-**O que acontece:**
-
-`a && b` avalia `a` como verdadeiro (pois `a != 0`) e `b` como verdadeiro (pois `b != 0`), resultando no valor booleano `1'b1`. Esse resultado de 1 bit é então **zero-extendido** para preencher os 4 bits de `c`.
-
-## Q09
-
-**Resposta:**
-
-**Situação em que a adição (op=00) produz resultado truncado e incorreto em complemento de dois:**
-
-Como a ULA não possui uma flag de *overflow*, o único mecanismo disponível para perceber que a soma "estourou" a largura de bits é observar o *carry-out*. Isso foi implementado concatenando mais um bit ao resultado, de forma que a saída passa a ter 5 bits em vez de 4, permitindo representar diretamente o `carry-out` para os casos em que **A + B > 15** (considerando os operandos como valores sem sinal, de 0 a 15).
-
-Se a saída `y` fosse definida com apenas 4 bits, conseguiríamos representar valores até 15; a partir disso, o bit mais significativo do resultado seria descartado e a informação seria perdida. Com a concatenação do bit de `carry-out`, essa informação é recuperada — mas é importante notar que esse mecanismo detecta corretamente o **overflow em aritmética sem sinal** (unsigned), e **não** o overflow em complemento de dois (aritmética com sinal). Nesse último caso, o `carry-out` sozinho pode indicar estouro quando na verdade o resultado está correto, ou deixar de indicar quando o resultado está incorreto — por isso a ULA precisaria de uma flag de *overflow* dedicada, calculada de outra forma.
-
-**Como a flag de overflow poderia ser calculada a partir dos bits de entrada e do carry:**
-
-Em complemento de dois, o overflow ocorre quando o sinal do resultado é logicamente impossível dado o sinal dos operandos — ou seja, quando somamos dois números de **mesmo sinal** e obtemos um resultado de **sinal diferente**. Isso pode ser detectado por meio do XOR entre o *carry* que entra no bit mais significativo (MSB) e o *carry* que sai do MSB:
-
-$$overflow = C_{in}(MSB) \oplus C_{out}(MSB)$$
-
-Ou seja: se o carry que entra no último estágio de soma (bit de sinal) for diferente do carry que sai desse mesmo estágio, houve overflow. Alternativamente, o overflow também pode ser expresso diretamente a partir dos bits de sinal dos operandos (A₃, B₃) e do resultado (Y₃):
-
-$$overflow = (A_3 \cdot B_3 \cdot \overline{Y_3}) + (\overline{A_3} \cdot \overline{B_3} \cdot Y_3)$$
-
-ou seja, overflow ocorre quando A e B têm o mesmo sinal (ambos positivos ou ambos negativos) e o resultado apresenta sinal contrário ao dos operandos.
-
-
-
-
-
-
-
-
+A organização dos estímulos por meio de *tasks* no testbench apresenta vantagens práticas significativas em relação à escrita direta e contínua no bloco `initial`. A primeira vantagem é a **reutilização de código**, que elimina a duplicação de sequências repetitivas de comandos (como aplicar pulsos de clock específicos ou padronizar a inserção de dados e senhas no sistema). A segunda vantagem é a **legibilidade e facilidade de manutenção**, pois o uso de tarefas auxiliares limpa o corpo principal do bloco `initial`, permitindo que os cenários de testes sejam descritos de forma muito mais clara e estruturada em alto nível. Adicionalmente, essa estrutura facilita a **automação e padronização das checagens**, permitindo criar rotinas genéricas para verificar as saídas e contabilizar erros do sistema automaticamente.
 
 
 
