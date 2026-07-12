@@ -1,6 +1,7 @@
 # Respostas do Laboratório 04
-Aluno: tiago.silva
-Repositório: lab03_04_verilog_tiago_silva
+
+Aluno: tiago.silva  
+Repositório: lab03_04_verilog_tiago_silva  
 Branch de trabalho: lab04_verilog_sequential
 
 
