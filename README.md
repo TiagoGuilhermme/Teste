@@ -71,7 +71,8 @@ Separar a FSM em três blocos impede misturar os operadores `=` e `<=` no mesmo 
 
 
 ## Q07
-Resposta:
+**Resposta:**
+Para calcular o valor do parâmetro $N$, multiplicamos a frequência do clock do sistema pelo tempo de duração desejado. Com um clock de 50 MHz ($50 \times 10^6$ ciclos por segundo) e um tempo de liberação de 2 segundos, o cálculo é dado por: $N = 50.000.000 \text{ Hz} \times 2 \text{ s} = 100.000.000$ ciclos. Portanto, o valor de $N$ a ser utilizado deve ser **100.000.000**. Com esse valor, o circuito carregará internamente o valor inicial de contagem como $N - 1$ (99.999.999) no registrador `count` e decrementará a cada ciclo até atingir zero, completando exatamente os 2 segundos necessários antes de ativar o sinal `done`.
 
 
 ## Q08
